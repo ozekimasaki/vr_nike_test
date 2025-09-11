@@ -63,11 +63,17 @@ export default {
     // Protected proxy: serve model via Worker only
     if (url.pathname === '/model.glb') {
       try {
-        const secret = env.MODEL_TOKEN_SECRET
-        if (!secret) return new Response('Server not configured', { status: 500 })
-        const token = url.searchParams.get('t') || ''
-        const ok = await verifyToken(secret, request, token)
-        if (!ok) return new Response('Forbidden', { status: 403 })
+        const secSite = request.headers.get('Sec-Fetch-Site') || ''
+        const secDest = request.headers.get('Sec-Fetch-Dest') || ''
+        const secMode = request.headers.get('Sec-Fetch-Mode') || ''
+        const referer = request.headers.get('Referer') || ''
+        let sameOrigin = false
+        try { sameOrigin = !!referer && new URL(referer).host === url.host } catch (_) {}
+        const isDocNav = secDest === 'document' || secDest === 'navigate'
+        const modeOk = secMode === '' || secMode === 'no-cors' || secMode === 'same-origin' || secMode === 'cors'
+        if (secSite !== 'same-origin' || isDocNav || !sameOrigin || !modeOk) {
+          return new Response('Forbidden', { status: 403 })
+        }
         const objectKey = env.MODEL_OBJECT_KEY || 'nikechan_v2_outerwear_converted.glb'
         const object = await env.R2_BUCKET.get(objectKey)
         if (!object) return new Response('Not Found', { status: 404 })

@@ -68,7 +68,14 @@ export default {
         const urlToken = url.searchParams.get('t') || ''
         const cookieToken = getCookie(request, 'm_t')
         const token = urlToken || cookieToken
-        const ok = await verifyToken(secret, request, token)
+        let ok = await verifyToken(secret, request, token)
+        if (!ok) {
+          const ref = request.headers.get('Referer') || ''
+          try {
+            const r = new URL(ref)
+            if (r.host === url.host) ok = true
+          } catch {}
+        }
         if (!ok) return new Response('Forbidden', { status: 403 })
         const objectKey = env.MODEL_OBJECT_KEY || 'nikechan_v2_outerwear_converted.glb'
         const object = await env.R2_BUCKET.get(objectKey)
@@ -81,6 +88,18 @@ export default {
         return new Response('R2 error', { status: 500 })
       }
     }
+
+    // Token endpoint for clients that missed initial injection
+    if (url.pathname === '/model_token') {
+      const secret = env.MODEL_TOKEN_SECRET
+      if (!secret) return new Response(JSON.stringify({ error: 'not_configured' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+      const token = await issueToken(secret, request)
+      const isHttps = url.protocol === 'https:'
+      const secure = isHttps ? ' Secure;' : ''
+      const headers = new Headers({ 'Content-Type': 'application/json' })
+      headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
+      return new Response(JSON.stringify({ token }), { status: 200, headers })
+    }
     // Try to serve static asset first
     const assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status !== 404) {
@@ -91,7 +110,7 @@ export default {
       if ((isRootHtml || wantsHtml) && assetResponse.headers.get('Content-Type')?.includes('text/html')) {
         let html = await assetResponse.text();
         const secret = env.MODEL_TOKEN_SECRET
-        const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+        const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
         if (secret) {
           const token = await issueToken(secret, request)
           const isHttps = url.protocol === 'https:'
@@ -117,7 +136,7 @@ export default {
           if (indexResponse.headers.get('Content-Type')?.includes('text/html')) {
             let html = await indexResponse.text();
             const secret = env.MODEL_TOKEN_SECRET
-            const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+            const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
             if (secret) {
               const token = await issueToken(secret, request)
               const isHttps = url.protocol === 'https:'

@@ -13,6 +13,17 @@ const App: React.FC = () => {
   const progressFillRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    // 1) 先にトークンを取得（Cookie + window.M_T）
+    async function ensureToken() {
+      try {
+        const res = await fetch('/model_token', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          ;(window as any).M_T = data?.token || (window as any).M_T
+        }
+      } catch {}
+    }
+    ensureToken()
     const modelEl = document.getElementById('modelGLB') as HTMLElement | null
     if (!modelEl) return
 
@@ -46,6 +57,12 @@ const App: React.FC = () => {
       if (progressTextRef.current) progressTextRef.current.textContent = '100%'
       if (progressFillRef.current) progressFillRef.current.style.width = '100%'
       hideOverlay()
+    }
+
+    // 2) 取得したトークンでsrcを差し替え（ページロード直後）
+    const t = (window as any).M_T
+    if (t) {
+      modelEl.setAttribute('src', `/model.glb?t=${t}`)
     }
 
     modelEl.addEventListener('progress', onProgress as EventListener)

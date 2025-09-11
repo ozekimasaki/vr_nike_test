@@ -67,29 +67,29 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false">
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="gravity: -9.8">
         <a-assets timeout="0">
           <a-asset-item
             id="modelGLB"
-            src="/model.glb"
+            src={typeof window !== 'undefined' && (window as any).M_T ? `/model.glb?t=${(window as any).M_T}` : '/model.glb'}
             crossorigin="anonymous"
           ></a-asset-item>
         </a-assets>
 
-        <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
+        <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true" static-body="shape: box"></a-plane>
 
         {/** 壁（見えやすいように少し背を高く、内寸は床20x20に合致） */}
-        <a-box position="0 1 -10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
-        <a-box position="0 1 10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
-        <a-box position="-10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true"></a-box>
-        <a-box position="10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true"></a-box>
+        <a-box position="0 1 -10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true" static-body="shape: box"></a-box>
+        <a-box position="0 1 10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true" static-body="shape: box"></a-box>
+        <a-box position="-10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true" static-body="shape: box"></a-box>
+        <a-box position="10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true" static-body="shape: box"></a-box>
 
         <a-entity light="type: ambient; color: #ffffff; intensity: 0.6"></a-entity>
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4" clamp-position="minX: -9; maxX: 9; minZ: -9; maxZ: 9">
-          <a-camera wasd-controls-enabled="true" look-controls="true"></a-camera>
+        <a-entity id="rig" position="0 1.6 4" kinematic-body="shape: capsule; radius: 0.3; height: 1.6" wasd-controls="acceleration: 35">
+          <a-camera position="0 0 0" wasd-controls-enabled="false" look-controls="true"></a-camera>
         </a-entity>
 
         <a-entity id="spawnRoot" position="0 0 0"></a-entity>

@@ -65,7 +65,9 @@ export default {
       try {
         const secret = env.MODEL_TOKEN_SECRET
         if (!secret) return new Response('Server not configured', { status: 500 })
-        const token = getCookie(request, 'm_t')
+        const urlToken = url.searchParams.get('t') || ''
+        const cookieToken = getCookie(request, 'm_t')
+        const token = urlToken || cookieToken
         const ok = await verifyToken(secret, request, token)
         if (!ok) return new Response('Forbidden', { status: 403 })
         const objectKey = env.MODEL_OBJECT_KEY || 'nikechan_v2_outerwear_converted.glb'
@@ -87,12 +89,16 @@ export default {
       const accept = request.headers.get('Accept') || '';
       const wantsHtml = accept.includes('text/html');
       if ((isRootHtml || wantsHtml) && assetResponse.headers.get('Content-Type')?.includes('text/html')) {
-        const html = await assetResponse.text();
+        let html = await assetResponse.text();
         const secret = env.MODEL_TOKEN_SECRET
-        let headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+        const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
         if (secret) {
           const token = await issueToken(secret, request)
-          headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=300`)
+          const isHttps = url.protocol === 'https:'
+          const secure = isHttps ? ' Secure;' : ''
+          headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
+          const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
+          html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
         }
         return new Response(html, { status: 200, headers })
       }
@@ -109,12 +115,16 @@ export default {
         let indexResponse = await env.ASSETS.fetch(indexRequest);
         if (indexResponse.status !== 404) {
           if (indexResponse.headers.get('Content-Type')?.includes('text/html')) {
-            const html = await indexResponse.text();
+            let html = await indexResponse.text();
             const secret = env.MODEL_TOKEN_SECRET
-            let headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+            const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
             if (secret) {
               const token = await issueToken(secret, request)
-              headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=300`)
+              const isHttps = url.protocol === 'https:'
+              const secure = isHttps ? ' Secure;' : ''
+              headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
+              const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
+              html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
             }
             return new Response(html, { status: 200, headers })
           }

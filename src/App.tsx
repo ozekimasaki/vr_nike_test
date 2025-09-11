@@ -13,17 +13,7 @@ const App: React.FC = () => {
   const progressFillRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    // 1) 先にトークンを取得（Cookie + window.M_T）
-    async function ensureToken() {
-      try {
-        const res = await fetch('/model_token', { credentials: 'include' })
-        if (res.ok) {
-          const data = await res.json()
-          ;(window as any).M_T = data?.token || (window as any).M_T
-        }
-      } catch {}
-    }
-    ensureToken()
+    // TokenはHTML配信時に注入済み（window.M_T）
     const modelEl = document.getElementById('modelGLB') as HTMLElement | null
     if (!modelEl) return
 

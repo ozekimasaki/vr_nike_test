@@ -80,17 +80,7 @@ export default {
       }
     }
 
-    // Token endpoint for clients that missed initial injection
-    if (url.pathname === '/model_token') {
-      const secret = env.MODEL_TOKEN_SECRET
-      if (!secret) return new Response(JSON.stringify({ error: 'not_configured' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
-      const token = await issueToken(secret, request)
-      const isHttps = url.protocol === 'https:'
-      const secure = isHttps ? ' Secure;' : ''
-      const headers = new Headers({ 'Content-Type': 'application/json' })
-      headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
-      return new Response(JSON.stringify({ token }), { status: 200, headers })
-    }
+    // (Removed) Explicit token endpoint to avoid exposing tokens via JSON
     // Try to serve static asset first
     const assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status !== 404) {
@@ -104,9 +94,6 @@ export default {
         const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
         if (secret) {
           const token = await issueToken(secret, request)
-          const isHttps = url.protocol === 'https:'
-          const secure = isHttps ? ' Secure;' : ''
-          headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
           const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
           html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
         }
@@ -130,9 +117,6 @@ export default {
             const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
             if (secret) {
               const token = await issueToken(secret, request)
-              const isHttps = url.protocol === 'https:'
-              const secure = isHttps ? ' Secure;' : ''
-              headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=300`)
               const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
               html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
             }

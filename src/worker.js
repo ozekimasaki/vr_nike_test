@@ -92,12 +92,20 @@ export default {
         let html = await assetResponse.text();
         const secret = env.MODEL_TOKEN_SECRET
         const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
+        let injected = '0'
+        let hasSecret = secret ? '1' : '0'
         if (secret) {
           const token = await issueToken(secret, request)
-          const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
+          const inject = `<script>(function(){var t='${token.replace(/'/g, "\\'")}';window.M_T=t;console.log('[worker] token injected len=',t.length);})();<\/script>`
           html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
           html = html.replace(/src="\/model\.glb"/g, `src="/model.glb?t=${token}"`)
+          injected = '1'
+        } else {
+          const injectDbg = `<script>console.warn('[worker] MODEL_TOKEN_SECRET missing; no token injected');<\/script>`
+          html = html.replace(/<\/head>/i, `${injectDbg}\n  </head>`)
         }
+        headers.set('X-Token-Injected', injected)
+        headers.set('X-Token-HasSecret', hasSecret)
         return new Response(html, { status: 200, headers })
       }
       return assetResponse;
@@ -116,12 +124,20 @@ export default {
             let html = await indexResponse.text();
             const secret = env.MODEL_TOKEN_SECRET
             const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
+            let injected = '0'
+            let hasSecret = secret ? '1' : '0'
             if (secret) {
               const token = await issueToken(secret, request)
-              const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
+              const inject = `<script>(function(){var t='${token.replace(/'/g, "\\'")}';window.M_T=t;console.log('[worker] token injected len=',t.length);})();<\/script>`
               html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
               html = html.replace(/src="\/model\.glb"/g, `src="/model.glb?t=${token}"`)
+              injected = '1'
+            } else {
+              const injectDbg = `<script>console.warn('[worker] MODEL_TOKEN_SECRET missing; no token injected');<\/script>`
+              html = html.replace(/<\/head>/i, `${injectDbg}\n  </head>`)
             }
+            headers.set('X-Token-Injected', injected)
+            headers.set('X-Token-HasSecret', hasSecret)
             return new Response(html, { status: 200, headers })
           }
           return indexResponse;

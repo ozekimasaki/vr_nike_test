@@ -105,8 +105,8 @@ const App: React.FC = () => {
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4" kinematic-body="shape: capsule; radius: 0.3; height: 1.6" wasd-controls="acceleration: 35">
-          <a-camera position="0 0 0" wasd-controls-enabled="false" look-controls="true"></a-camera>
+        <a-entity id="rig" position="0 1.6 4" kinematic-body="shape: capsule; radius: 0.35; height: 1.6" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: true">
+          <a-camera position="0 0 0" wasd-controls-enabled="false"></a-camera>
         </a-entity>
 
         <a-entity id="spawnRoot" position="0 0 0"></a-entity>

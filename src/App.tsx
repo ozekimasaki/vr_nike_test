@@ -77,15 +77,13 @@ const App: React.FC = () => {
         </div>
       </div>
       <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false">
-        {token && (
-          <a-assets timeout="0">
-            <a-asset-item
-              id="modelGLB"
-              src={`/model.glb?t=${token}`}
-              crossorigin="anonymous"
-            ></a-asset-item>
-          </a-assets>
-        )}
+        <a-assets timeout="0">
+          <a-asset-item
+            id="modelGLB"
+            src={token ? `/model.glb?t=${token}` : '/model.glb'}
+            crossorigin="anonymous"
+          ></a-asset-item>
+        </a-assets>
 
         <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
 
@@ -99,7 +97,7 @@ const App: React.FC = () => {
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: true">
+        <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false">
           <a-camera position="0 0 0" wasd-controls-enabled="false"></a-camera>
         </a-entity>
 

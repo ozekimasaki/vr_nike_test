@@ -5,15 +5,29 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import './style.css'
 
-const container = document.getElementById('root')!
-const root = createRoot(container)
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+async function waitForToken(timeoutMs = 800) {
+  const start = performance.now()
+  return new Promise<void>((resolve) => {
+    if ((window as any).M_T) return resolve()
+    const id = setInterval(() => {
+      if ((window as any).M_T || performance.now() - start > timeoutMs) {
+        clearInterval(id)
+        resolve()
+      }
+    }, 16)
+  })
+}
 
-// A-Frame DOMがマウントされた後に既存制御を読み込む
-requestAnimationFrame(() => import('./main.js'))
+;(async () => {
+  await waitForToken()
+  const container = document.getElementById('root')!
+  const root = createRoot(container)
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  )
+  requestAnimationFrame(() => import('./main.js'))
+})()
 
 

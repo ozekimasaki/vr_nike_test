@@ -12,3 +12,8 @@ directory = "dist"
 binding = "R2_BUCKET"
 bucket_name = "dev"
 
+# Ensure all traffic for this domain passes through the Worker
+routes = [
+  { pattern = "vr-test.umaibo.dev/*", zone_name = "umaibo.dev" }
+]
+

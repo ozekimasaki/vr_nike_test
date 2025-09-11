@@ -84,27 +84,27 @@ export default {
     // Try to serve static asset first
     const assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status !== 404) {
-      // HTMLなら常にトークン注入を試みる（Acceptやパスに依存しない）
-      const isHtml = assetResponse.headers.get('Content-Type')?.includes('text/html')
-      if (isHtml) {
-        let html = await assetResponse.text();
+      // HTMLRewriterで確実に挿入
+      const ct = assetResponse.headers.get('Content-Type') || ''
+      if (ct.includes('text/html')) {
         const secret = env.MODEL_TOKEN_SECRET
-        const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
-        let injected = '0'
-        let hasSecret = secret ? '1' : '0'
-        if (secret) {
-          const token = await issueToken(secret, request)
-          const inject = `<script>(function(){var t='${token.replace(/'/g, "\\'")}';window.M_T=t;console.log('[worker] token injected len=',t.length);})();<\/script>`
-          html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
-          html = html.replace(/src="\/model\.glb"/g, `src="/model.glb?t=${token}"`)
-          injected = '1'
-        } else {
-          const injectDbg = `<script>console.warn('[worker] MODEL_TOKEN_SECRET missing; no token injected');<\/script>`
-          html = html.replace(/<\/head>/i, `${injectDbg}\n  </head>`)
-        }
-        headers.set('X-Token-Injected', injected)
-        headers.set('X-Token-HasSecret', hasSecret)
-        return new Response(html, { status: 200, headers })
+        if (!secret) return assetResponse
+        const token = await issueToken(secret, request)
+        const rewriter = new HTMLRewriter()
+          .on('head', {
+            element(e) {
+              e.append(`<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`, { html: true })
+            }
+          })
+          .on('a-asset-item#modelGLB', {
+            element(e) {
+              e.setAttribute('src', `/model.glb?t=${token}`)
+            }
+          })
+        const headers = new Headers(assetResponse.headers)
+        headers.set('Cache-Control', 'no-store')
+        headers.set('X-Token-Injected', '1')
+        return rewriter.transform(new Response(assetResponse.body, { headers }))
       }
       return assetResponse;
     }

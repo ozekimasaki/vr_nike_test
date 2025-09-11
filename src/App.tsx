@@ -76,7 +76,7 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="gravity: -9.8">
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="driver: cannon; gravity: -9.8">
         {token && (
           <a-assets timeout="0">
             <a-asset-item
@@ -99,7 +99,7 @@ const App: React.FC = () => {
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4" kinematic-body="shape: capsule; radius: 0.35; height: 1.6" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: true" clamp-position="minX: -9.65; maxX: 9.65; minZ: -9.65; maxZ: 9.65">
+        <a-entity id="rig" position="0 1.6 4" kinematic-body="radius: 0.35; height: 1.6" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: true">
           <a-camera position="0 0 0" wasd-controls-enabled="false"></a-camera>
         </a-entity>
 

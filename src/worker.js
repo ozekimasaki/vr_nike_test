@@ -90,10 +90,11 @@ export default {
         const secret = env.MODEL_TOKEN_SECRET
         if (!secret) return assetResponse
         const token = await issueToken(secret, request)
+        const tokenScript = `(function(){var t='${token.replace(/'/g, "\\'")}';window.M_T=t;try{var pv=t.slice(0,8)+'...'+t.slice(-8);console.log('[worker] token injected preview=',pv,'len=',t.length);}catch(_){}})();`
         const rewriter = new HTMLRewriter()
           .on('head', {
             element(e) {
-              e.append(`<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`, { html: true })
+              e.append(`<script>${tokenScript}<\/script>`, { html: true })
             }
           })
           .on('a-asset-item#modelGLB', {

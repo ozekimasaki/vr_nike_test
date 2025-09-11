@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 declare global {
   interface Window {
@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const progressTextRef = useRef<HTMLSpanElement | null>(null)
   const progressFillRef = useRef<HTMLDivElement | null>(null)
+  const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
 
   useEffect(() => {
     // TokenはHTML配信時に注入済み（window.M_T）
@@ -52,6 +53,7 @@ const App: React.FC = () => {
     // 2) 取得したトークンでsrcを差し替え（ページロード直後）
     const t = (window as any).M_T
     if (t) {
+      setToken(t)
       modelEl.setAttribute('src', `/model.glb?t=${t}`)
     }
 
@@ -75,13 +77,15 @@ const App: React.FC = () => {
         </div>
       </div>
       <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="gravity: -9.8">
-        <a-assets timeout="0">
-          <a-asset-item
-            id="modelGLB"
-            src={typeof window !== 'undefined' && (window as any).M_T ? `/model.glb?t=${(window as any).M_T}` : '/model.glb'}
-            crossorigin="anonymous"
-          ></a-asset-item>
-        </a-assets>
+        {token && (
+          <a-assets timeout="0">
+            <a-asset-item
+              id="modelGLB"
+              src={`/model.glb?t=${token}`}
+              crossorigin="anonymous"
+            ></a-asset-item>
+          </a-assets>
+        )}
 
         <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true" static-body="shape: box"></a-plane>
 

@@ -33,11 +33,7 @@ export default {
     async function issueToken(secret, req) {
       const now = Date.now()
       const expMs = now + 5 * 60 * 1000 // 5 minutes
-      const payload = {
-        exp: expMs,
-        ip: req.headers.get('cf-connecting-ip') || '',
-        ua: req.headers.get('user-agent') || ''
-      }
+      const payload = { exp: expMs }
       const payloadStr = JSON.stringify(payload)
       const token = b64urlFromString(payloadStr) + '.' + await signPayload(secret, payloadStr)
       return token
@@ -55,10 +51,6 @@ export default {
       } catch (_) { return false }
       if (!payload || typeof payload.exp !== 'number') return false
       if (Date.now() > payload.exp) return false
-      const ip = req.headers.get('cf-connecting-ip') || ''
-      const ua = req.headers.get('user-agent') || ''
-      if (payload.ip && ip && payload.ip !== ip) return false
-      if (payload.ua && ua && payload.ua !== ua) return false
       const expected = await signPayload(secret, payloadStr)
       return expected === s
     }

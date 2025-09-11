@@ -65,17 +65,8 @@ export default {
       try {
         const secret = env.MODEL_TOKEN_SECRET
         if (!secret) return new Response('Server not configured', { status: 500 })
-        const urlToken = url.searchParams.get('t') || ''
-        const cookieToken = getCookie(request, 'm_t')
-        const token = urlToken || cookieToken
-        let ok = await verifyToken(secret, request, token)
-        if (!ok) {
-          const ref = request.headers.get('Referer') || ''
-          try {
-            const r = new URL(ref)
-            if (r.host === url.host) ok = true
-          } catch {}
-        }
+        const token = url.searchParams.get('t') || ''
+        const ok = await verifyToken(secret, request, token)
         if (!ok) return new Response('Forbidden', { status: 403 })
         const objectKey = env.MODEL_OBJECT_KEY || 'nikechan_v2_outerwear_converted.glb'
         const object = await env.R2_BUCKET.get(objectKey)

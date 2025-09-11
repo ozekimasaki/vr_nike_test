@@ -74,6 +74,11 @@ export default defineConfig(({ command, mode }) => {
     ] : [])
   ],
   define: defineValues,
+  resolve: {
+    alias: {
+      'three-to-ammo': path.resolve(__dirname, 'src/shims/empty.js')
+    }
+  },
   server: {
     host: true,
     open: true,

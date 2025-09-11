@@ -76,7 +76,7 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="driver: cannon; gravity: -9.8">
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false" physics="driver: cannon-es; gravity: -9.8">
         {token && (
           <a-assets timeout="0">
             <a-asset-item

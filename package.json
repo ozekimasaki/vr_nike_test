@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@c-frame/aframe-physics-system": "^4.2.3",
     "aframe": "^1.7.0",
     "cannon-es": "^0.20.0",
     "react": "^18.3.1",

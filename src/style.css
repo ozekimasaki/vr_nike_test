@@ -1,0 +1,41 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+/* 中央ボタン用UIレイヤー。A-Frameの上にオーバーレイ表示 */
+#ui {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* UIの外はA-Frameにイベントを通す */
+}
+
+.summon-button {
+  pointer-events: auto; /* ボタンはクリック可能に戻す */
+  font-size: 22px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #ff4d4f, #ff7875);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(255, 77, 79, 0.4);
+  transition: transform 0.08s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.summon-button:hover {
+  filter: brightness(1.05);
+}
+
+.summon-button:active {
+  transform: translateY(1px);
+}
+
+.summon-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+

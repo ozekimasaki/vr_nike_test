@@ -1,0 +1,8 @@
+name = "ar-nike-vr-demo"
+main = "src/worker.js"
+compatibility_date = "2024-09-30"
+
+[assets]
+directory = "dist"
+
+

@@ -1,4 +1,4 @@
-name = "ar-nike-vr-demo"
+name = "vr-nike-test"
 main = "src/worker.js"
 compatibility_date = "2025-09-11"
 

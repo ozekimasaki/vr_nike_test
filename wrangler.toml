@@ -6,3 +6,5 @@ compatibility_date = "2025-09-11"
 directory = "dist"
 
 
+## NOTE: Secrets like MODEL_URL should be set via `wrangler secret put`.
+

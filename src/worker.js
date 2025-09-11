@@ -3,7 +3,7 @@ export default {
     // Try to serve static asset first
     const assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status !== 404) {
-      // index.html のモデル参照を書き換え（/model/... を外部 URL へ）
+      // index.html に window.MODEL_URL を注入（R2 URLをクライアントに伝える）
       const url = new URL(request.url);
       const isRootHtml = url.pathname === '/' || url.pathname.endsWith('/index.html');
       const accept = request.headers.get('Accept') || '';
@@ -11,13 +11,12 @@ export default {
       if ((isRootHtml || wantsHtml) && assetResponse.headers.get('Content-Type')?.includes('text/html')) {
         const html = await assetResponse.text();
         const modelUrl = env.MODEL_URL || '';
-        if (modelUrl) {
-          const replaced = html.replace(/src="\/model\/[^"]+\.glb"/g, `src="${modelUrl}"`);
-          return new Response(replaced, {
-            status: 200,
-            headers: { 'Content-Type': 'text/html; charset=utf-8' }
-          });
-        }
+        const inject = modelUrl ? `<script>window.MODEL_URL = '${modelUrl.replace(/'/g, "\\'")}'<\/script>` : '';
+        const withVar = inject ? html.replace(/<\/head>/i, `${inject}\n  </head>`) : html;
+        return new Response(withVar, {
+          status: 200,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
       }
       return assetResponse;
     }
@@ -34,13 +33,12 @@ export default {
           if (indexResponse.headers.get('Content-Type')?.includes('text/html')) {
             const html = await indexResponse.text();
             const modelUrl = env.MODEL_URL || '';
-            if (modelUrl) {
-              const replaced = html.replace(/src="\/model\/[^"]+\.glb"/g, `src="${modelUrl}"`);
-              return new Response(replaced, {
-                status: 200,
-                headers: { 'Content-Type': 'text/html; charset=utf-8' }
-              });
-            }
+            const inject = modelUrl ? `<script>window.MODEL_URL = '${modelUrl.replace(/'/g, "\\'")}'<\/script>` : '';
+            const withVar = inject ? html.replace(/<\/head>/i, `${inject}\n  </head>`) : html;
+            return new Response(withVar, {
+              status: 200,
+              headers: { 'Content-Type': 'text/html; charset=utf-8' }
+            });
           }
           return indexResponse;
         }

@@ -12,6 +12,11 @@ async function waitForToken(timeoutMs = 800) {
     const id = setInterval(() => {
       if ((window as any).M_T || performance.now() - start > timeoutMs) {
         clearInterval(id)
+        const present = Boolean((window as any).M_T)
+        try {
+          const t = (window as any).M_T
+          console.log('[token] ready=', present, present ? `len=${String(t).length}` : '(none)')
+        } catch (_) {}
         resolve()
       }
     }, 16)

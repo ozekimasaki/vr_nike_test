@@ -2,18 +2,86 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // --- Token helpers ---
+    async function importHmacKey(secret) {
+      const enc = new TextEncoder()
+      return crypto.subtle.importKey(
+        'raw',
+        enc.encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign', 'verify']
+      )
+    }
+    function b64url(bytes) {
+      let str = btoa(String.fromCharCode(...new Uint8Array(bytes)))
+      return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+    }
+    function b64urlFromString(str) {
+      return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+    }
+    function stringFromB64url(b64) {
+      const pad = '='.repeat((4 - (b64.length % 4)) % 4)
+      const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/')
+      return atob(s)
+    }
+    async function signPayload(secret, payloadStr) {
+      const key = await importHmacKey(secret)
+      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadStr))
+      return b64url(sig)
+    }
+    async function issueToken(secret, req) {
+      const now = Date.now()
+      const expMs = now + 5 * 60 * 1000 // 5 minutes
+      const payload = {
+        exp: expMs,
+        ip: req.headers.get('cf-connecting-ip') || '',
+        ua: req.headers.get('user-agent') || ''
+      }
+      const payloadStr = JSON.stringify(payload)
+      const token = b64urlFromString(payloadStr) + '.' + await signPayload(secret, payloadStr)
+      return token
+    }
+    async function verifyToken(secret, req, token) {
+      if (!token || !token.includes('.')) return false
+      const [p, s] = token.split('.')
+      let payloadStr
+      try {
+        payloadStr = stringFromB64url(p)
+      } catch (_) { return false }
+      let payload
+      try {
+        payload = JSON.parse(payloadStr)
+      } catch (_) { return false }
+      if (!payload || typeof payload.exp !== 'number') return false
+      if (Date.now() > payload.exp) return false
+      const ip = req.headers.get('cf-connecting-ip') || ''
+      const ua = req.headers.get('user-agent') || ''
+      if (payload.ip && ip && payload.ip !== ip) return false
+      if (payload.ua && ua && payload.ua !== ua) return false
+      const expected = await signPayload(secret, payloadStr)
+      return expected === s
+    }
+    function getCookie(req, name) {
+      const cookie = req.headers.get('Cookie') || ''
+      const m = cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'))
+      return m ? decodeURIComponent(m[1]) : ''
+    }
+
     // Protected proxy: serve model via Worker only
     if (url.pathname === '/model.glb') {
       try {
-        // Read from R2 bucket directly
+        const secret = env.MODEL_TOKEN_SECRET
+        if (!secret) return new Response('Server not configured', { status: 500 })
+        const token = getCookie(request, 'm_t')
+        const ok = await verifyToken(secret, request, token)
+        if (!ok) return new Response('Forbidden', { status: 403 })
         const objectKey = env.MODEL_OBJECT_KEY || 'nikechan_v2_outerwear_converted.glb'
         const object = await env.R2_BUCKET.get(objectKey)
         if (!object) return new Response('Not Found', { status: 404 })
         const headers = new Headers()
-        headers.set('Access-Control-Allow-Origin', '*')
-        headers.set('Cache-Control', 'public, max-age=3600')
+        headers.set('Cache-Control', 'private, max-age=0, no-store')
         headers.set('Content-Type', object.httpMetadata?.contentType || 'model/gltf-binary')
-        if (object.httpMetadata?.cacheControl) headers.set('Cache-Control', object.httpMetadata.cacheControl)
         return new Response(object.body, { status: 200, headers })
       } catch (e) {
         return new Response('R2 error', { status: 500 })
@@ -28,10 +96,13 @@ export default {
       const wantsHtml = accept.includes('text/html');
       if ((isRootHtml || wantsHtml) && assetResponse.headers.get('Content-Type')?.includes('text/html')) {
         const html = await assetResponse.text();
-        return new Response(html, {
-          status: 200,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
-        });
+        const secret = env.MODEL_TOKEN_SECRET
+        let headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+        if (secret) {
+          const token = await issueToken(secret, request)
+          headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=300`)
+        }
+        return new Response(html, { status: 200, headers })
       }
       return assetResponse;
     }
@@ -47,10 +118,13 @@ export default {
         if (indexResponse.status !== 404) {
           if (indexResponse.headers.get('Content-Type')?.includes('text/html')) {
             const html = await indexResponse.text();
-            return new Response(html, {
-              status: 200,
-              headers: { 'Content-Type': 'text/html; charset=utf-8' }
-            });
+            const secret = env.MODEL_TOKEN_SECRET
+            let headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' })
+            if (secret) {
+              const token = await issueToken(secret, request)
+              headers.append('Set-Cookie', `m_t=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=300`)
+            }
+            return new Response(html, { status: 200, headers })
           }
           return indexResponse;
         }

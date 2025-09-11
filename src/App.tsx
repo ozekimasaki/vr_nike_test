@@ -78,11 +78,17 @@ const App: React.FC = () => {
 
         <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
 
+        {/** 壁（見えやすいように少し背を高く、内寸は床20x20に合致） */}
+        <a-box position="0 1 -10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
+        <a-box position="0 1 10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
+        <a-box position="-10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true"></a-box>
+        <a-box position="10 1 0" depth="20" width="0.2" height="2" color="#9ca3af" shadow="cast: true"></a-box>
+
         <a-entity light="type: ambient; color: #ffffff; intensity: 0.6"></a-entity>
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4">
+        <a-entity id="rig" position="0 1.6 4" clamp-position="minX: -9; maxX: 9; minZ: -9; maxZ: 9">
           <a-camera wasd-controls-enabled="true" look-controls="true"></a-camera>
         </a-entity>
 

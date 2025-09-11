@@ -7,6 +7,33 @@ try {
   }
 } catch (_) {}
 
+// プレイヤー移動のX/Z範囲を制限するコンポーネント
+try {
+  if (window.AFRAME) {
+    window.AFRAME.registerComponent('clamp-position', {
+      schema: {
+        minX: { type: 'number', default: -9 },
+        maxX: { type: 'number', default: 9 },
+        minZ: { type: 'number', default: -9 },
+        maxZ: { type: 'number', default: 9 }
+      },
+      tick: function () {
+        const p = this.el.object3D.position
+        let nx = p.x
+        let nz = p.z
+        if (p.x < this.data.minX) nx = this.data.minX
+        else if (p.x > this.data.maxX) nx = this.data.maxX
+        if (p.z < this.data.minZ) nz = this.data.minZ
+        else if (p.z > this.data.maxZ) nz = this.data.maxZ
+        if (nx !== p.x || nz !== p.z) {
+          p.x = nx
+          p.z = nz
+        }
+      }
+    })
+  }
+} catch (_) {}
+
 const spawnRoot = document.getElementById('spawnRoot')
 const button3D = document.getElementById('summonButton3D')
 const rotateButton3D = document.getElementById('rotateButton3D')

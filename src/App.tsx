@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 declare global {
   interface Window {
@@ -8,14 +8,67 @@ declare global {
 }
 
 const App: React.FC = () => {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const progressTextRef = useRef<HTMLSpanElement | null>(null)
+  const progressFillRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
-    // A-Frame script is already included via index.html
+    const modelEl = document.getElementById('modelGLB') as HTMLElement | null
+    if (!modelEl) return
+
+    function showOverlay() {
+      const el = overlayRef.current
+      if (!el) return
+      el.style.opacity = '1'
+      el.style.pointerEvents = 'auto'
+      el.style.display = 'flex'
+    }
+
+    function hideOverlay() {
+      const el = overlayRef.current
+      if (!el) return
+      el.style.opacity = '0'
+      el.style.pointerEvents = 'none'
+      setTimeout(() => { if (el) el.style.display = 'none' }, 300)
+    }
+
+    const onProgress = (e: Event & { detail?: any }) => {
+      showOverlay()
+      const detail = e.detail || {}
+      const loaded = Number(detail.loaded ?? 0)
+      const total = Number(detail.total ?? 0)
+      const percent = total > 0 ? Math.min(100, Math.floor((loaded / total) * 100)) : 0
+      if (progressTextRef.current) progressTextRef.current.textContent = `${percent}%`
+      if (progressFillRef.current) progressFillRef.current.style.width = `${percent}%`
+    }
+
+    const onLoaded = () => {
+      if (progressTextRef.current) progressTextRef.current.textContent = '100%'
+      if (progressFillRef.current) progressFillRef.current.style.width = '100%'
+      hideOverlay()
+    }
+
+    modelEl.addEventListener('progress', onProgress as EventListener)
+    modelEl.addEventListener('loaded', onLoaded as EventListener)
+
+    return () => {
+      modelEl.removeEventListener('progress', onProgress as EventListener)
+      modelEl.removeEventListener('loaded', onLoaded as EventListener)
+    }
   }, [])
 
   return (
     <>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC">
-        <a-assets>
+      <div id="loadingOverlay" ref={overlayRef} aria-hidden="true">
+        <div className="loading-box">
+          <div className="loading-label">Loading model… <span ref={progressTextRef}>0%</span></div>
+          <div className="loading-bar">
+            <div className="loading-fill" ref={progressFillRef} style={{ width: '0%' }} />
+          </div>
+        </div>
+      </div>
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false">
+        <a-assets timeout="0">
           <a-asset-item
             id="modelGLB"
             src="/model.glb"

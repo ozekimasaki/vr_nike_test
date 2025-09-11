@@ -1,0 +1,10 @@
+name = "ar-nike-vr-demo"
+main = "src/worker.js"
+compatibility_date = "2025-09-11"
+
+[assets]
+directory = "dist"
+
+[vars]
+# 外部に置いた GLB の URL を設定（例: R2 / 公開HTTP）
+MODEL_URL = "https://dev-assets.umaibo.dev/nikechan_v2_outerwear_converted.glb"

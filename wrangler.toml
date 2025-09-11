@@ -8,3 +8,7 @@ directory = "dist"
 
 ## NOTE: Secrets like MODEL_URL should be set via `wrangler secret put`.
 
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "dev"
+

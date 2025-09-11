@@ -30,7 +30,7 @@ export default defineConfig(({ command, mode }) => {
       try {
         const u = new URL(modelFromDevVars)
         devProxy = {
-          '/__r2_model.glb': {
+          '/model.glb': {
             target: `${u.protocol}//${u.host}`,
             changeOrigin: true,
             secure: true,
@@ -46,7 +46,7 @@ export default defineConfig(({ command, mode }) => {
         try {
           const u = new URL(env.VITE_MODEL_URL)
           devProxy = {
-            '/__r2_model.glb': {
+            '/model.glb': {
               target: `${u.protocol}//${u.host}`,
               changeOrigin: true,
               secure: true,

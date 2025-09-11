@@ -18,7 +18,7 @@ const App: React.FC = () => {
         <a-assets>
           <a-asset-item
             id="modelGLB"
-            src={window.MODEL_URL as string}
+            src="/model.glb"
             crossorigin="anonymous"
           ></a-asset-item>
         </a-assets>

@@ -84,11 +84,9 @@ export default {
     // Try to serve static asset first
     const assetResponse = await env.ASSETS.fetch(request);
     if (assetResponse.status !== 404) {
-      // index.html に window.MODEL_URL を注入（R2 URLをクライアントに伝える）
-      const isRootHtml = url.pathname === '/' || url.pathname.endsWith('/index.html');
-      const accept = request.headers.get('Accept') || '';
-      const wantsHtml = accept.includes('text/html');
-      if ((isRootHtml || wantsHtml) && assetResponse.headers.get('Content-Type')?.includes('text/html')) {
+      // HTMLなら常にトークン注入を試みる（Acceptやパスに依存しない）
+      const isHtml = assetResponse.headers.get('Content-Type')?.includes('text/html')
+      if (isHtml) {
         let html = await assetResponse.text();
         const secret = env.MODEL_TOKEN_SECRET
         const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' })
@@ -116,7 +114,9 @@ export default {
     if (request.method === 'GET') {
       const accept = request.headers.get('Accept') || '';
       const isHtmlRequest = accept.includes('text/html');
-      if (isHtmlRequest) {
+      const path = url.pathname || '/'
+      const looksLikeHtmlPath = path.endsWith('/') || path.endsWith('.html') || !path.split('/').pop().includes('.')
+      if (isHtmlRequest || looksLikeHtmlPath) {
         const indexRequest = new Request(new URL('/', url).toString(), request);
         let indexResponse = await env.ASSETS.fetch(indexRequest);
         if (indexResponse.status !== 404) {

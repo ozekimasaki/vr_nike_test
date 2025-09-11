@@ -8,7 +8,18 @@ import './style.css'
 // Load cannon-es from npm and register physics system
 import * as CANNON from 'cannon-es'
 ;(window as any).CANNON = CANNON
-import '@c-frame/aframe-physics-system'
+// Fallback: CDN physics plugin (avoid npm postinstall patches in CI)
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script')
+    s.src = src
+    s.async = true
+    s.onload = () => resolve()
+    s.onerror = () => reject(new Error(`Failed to load script: ${src}`))
+    document.head.appendChild(s)
+  })
+}
+await loadScript('https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.3/dist/aframe-physics-system.min.js')
 
 const container = document.getElementById('root')!
 const root = createRoot(container)

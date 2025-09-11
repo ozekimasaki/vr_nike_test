@@ -96,6 +96,7 @@ export default {
           const token = await issueToken(secret, request)
           const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
           html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
+          html = html.replace(/src="\/model\.glb"/g, `src="/model.glb?t=${token}"`)
         }
         return new Response(html, { status: 200, headers })
       }
@@ -119,6 +120,7 @@ export default {
               const token = await issueToken(secret, request)
               const inject = `<script>window.M_T='${token.replace(/'/g, "\\'")}'<\/script>`
               html = html.replace(/<\/head>/i, `${inject}\n  </head>`)
+              html = html.replace(/src="\/model\.glb"/g, `src="/model.glb?t=${token}"`)
             }
             return new Response(html, { status: 200, headers })
           }

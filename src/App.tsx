@@ -13,8 +13,15 @@ const App: React.FC = () => {
   const progressFillRef = useRef<HTMLDivElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
 
+  // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
   useEffect(() => {
-    // TokenはHTML配信時に注入済み（window.M_T）
+    const t = (window as any).M_T
+    if (t) setToken(t)
+  }, [])
+
+  // 2) token が用意できてからアセット進捗のリスナーを登録
+  useEffect(() => {
+    if (!token) return
     const modelEl = document.getElementById('modelGLB') as HTMLElement | null
     if (!modelEl) return
 
@@ -50,13 +57,6 @@ const App: React.FC = () => {
       hideOverlay()
     }
 
-    // 2) 取得したトークンでsrcを差し替え（ページロード直後）
-    const t = (window as any).M_T
-    if (t) {
-      setToken(t)
-      modelEl.setAttribute('src', `/model.glb?t=${t}`)
-    }
-
     modelEl.addEventListener('progress', onProgress as EventListener)
     modelEl.addEventListener('loaded', onLoaded as EventListener)
 
@@ -64,7 +64,7 @@ const App: React.FC = () => {
       modelEl.removeEventListener('progress', onProgress as EventListener)
       modelEl.removeEventListener('loaded', onLoaded as EventListener)
     }
-  }, [])
+  }, [token])
 
   return (
     <>

@@ -268,7 +268,7 @@ window.addEventListener('keydown', (e) => {
 
 // 視線テレポート（床直ヒット時のみワープ＋黒フェード）
 try {
-  if (gazeCursorEl && rig && floorEl) {
+  if (rig && floorEl) {
     const fade = {
       el: document.getElementById('fadeOverlay'),
       show(dur = 160) {
@@ -283,12 +283,12 @@ try {
       }
     }
 
-    gazeCursorEl.addEventListener('click', (ev) => {
+    // 床要素自身の click でのみ発動（ボタンは貫通しない）
+    floorEl.addEventListener('click', (ev) => {
       try {
         const d = ev.detail || {}
-        const target = d?.el
-        // ボタンなどは貫通させない: 床そのものにヒットした時のみ
-        if (!target || target !== floorEl) return
+        // 念のため対象確認
+        if (d?.el !== floorEl) return
         const intersection = d.intersection || d.intersections?.[0]
         if (!intersection || !intersection.point) return
         const p = intersection.point
@@ -301,6 +301,16 @@ try {
             pos.z = p.z
           } catch (_) {}
           fade.hide()
+          // フォーカス解除のためカーソルを一時停止→再開（次のクリックを有効化）
+          try {
+            const cam = document.querySelector('a-camera')
+            const cursorComp = cam && cam.components && cam.components.cursor
+            if (cursorComp) {
+              cursorComp.pause()
+              // 次フレームで再開してヒット状態をリセット
+              requestAnimationFrame(() => { try { cursorComp.play() } catch (_) {} })
+            }
+          } catch (_) {}
         }, 140)
       } catch (_) {}
     })

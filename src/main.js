@@ -287,7 +287,7 @@ try {
       }
     }
 
-    const cursorEl = document.getElementById('gazeCursor')
+    const cursorEl = document.getElementById('playerCamera') || document.querySelector('a-camera')
     if (cursorEl) cursorEl.addEventListener('click', (ev) => {
       try {
         const d = ev && ev.detail

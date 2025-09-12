@@ -131,32 +131,19 @@ const App: React.FC = () => {
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
         <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false" clamp-position>
-          <a-camera position="0 0 0" wasd-controls-enabled="false">
-            {/** a-cursor 等価。?mouse=1 で rayOrigin: mouse に切替 */}
-            {useMouseCursor ? (
-              <a-entity
-                id="gazeCursor"
-                cursor="rayOrigin: mouse"
-                raycaster={"objects: [geometry]; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
-                position="0 0 -1"
-                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-                material="color: white; shader: flat; depthTest: false"
-                animation__down="property: material.color; to: #3b82f6; startEvents: mousedown; dur: 80; easing: easeOutQuad"
-                animation__up="property: material.color; to: white; startEvents: mouseup; dur: 120; easing: easeOutQuad"
-              ></a-entity>
-            ) : (
-              <a-entity
-                id="gazeCursor"
-                cursor="fuse: true; fuseTimeout: 400"
-                raycaster={"objects: [geometry]; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
-                position="0 0 -1"
-                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-                material="color: white; shader: flat; depthTest: false"
-                animation__fusing="property: material.color; to: #3b82f6; startEvents: fusing; dur: 120; easing: easeOutQuad"
-                animation__fuseend="property: material.color; to: white; startEvents: fuseend; dur: 160; easing: easeOutQuad"
-                animation__click="property: material.color; to: white; startEvents: click; dur: 160; easing: easeOutQuad"
-              ></a-entity>
-            )}
+          <a-camera
+            id="playerCamera"
+            position="0 0 0"
+            wasd-controls-enabled="false"
+            cursor={useMouseCursor ? 'rayOrigin: mouse' : 'fuse: true; fuseTimeout: 400'}
+            raycaster={"objects: [geometry]; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
+          >
+            {/** 表示専用のリング。レイはカメラ原点から飛ぶのでズレなし */}
+            <a-entity
+              position="0 0 -1"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+              material="color: white; shader: flat; depthTest: false"
+            ></a-entity>
           </a-camera>
         </a-entity>
 

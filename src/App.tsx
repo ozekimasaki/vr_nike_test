@@ -18,29 +18,45 @@ const App: React.FC = () => {
     if (t) setToken(t)
   }, [])
 
-  // モデル読み込み（summon時）に合わせた軽量オーバーレイ
+  // ページロード時: モデルアセットの完全読み込みまでオーバーレイを表示
   useEffect(() => {
-    const show = () => {
-      const el = overlayRef.current
-      if (!el) return
+    const el = overlayRef.current
+    if (el) {
       el.style.display = 'flex'
       el.style.opacity = '1'
       el.style.pointerEvents = 'auto'
     }
     const hide = () => {
-      const el = overlayRef.current
-      if (!el) return
-      el.style.opacity = '0'
-      el.style.pointerEvents = 'none'
-      setTimeout(() => { if (el) el.style.display = 'none' }, 300)
+      const ov = overlayRef.current
+      if (!ov) return
+      ov.style.opacity = '0'
+      ov.style.pointerEvents = 'none'
+      setTimeout(() => { if (ov) ov.style.display = 'none' }, 300)
     }
-    window.addEventListener('glb-load-start', show)
-    window.addEventListener('glb-load-complete', hide)
-    window.addEventListener('glb-load-error', hide)
+
+    const assetsEl = document.querySelector('a-assets') as any
+    const modelEl = document.getElementById('modelGLB') as any
+    if (!assetsEl || !modelEl) return
+
+    // 既に読み込み済みなら即閉じる
+    // a-asset-item は hasLoaded を持つ
+    if (modelEl.hasLoaded) {
+      hide()
+      return
+    }
+
+    const onModelLoaded = () => hide()
+    const onAssetsLoaded = () => hide()
+    const onError = () => hide()
+
+    modelEl.addEventListener('loaded', onModelLoaded, { once: true })
+    modelEl.addEventListener('error', onError, { once: true })
+    assetsEl.addEventListener('loaded', onAssetsLoaded, { once: true })
+
     return () => {
-      window.removeEventListener('glb-load-start', show)
-      window.removeEventListener('glb-load-complete', hide)
-      window.removeEventListener('glb-load-error', hide)
+      modelEl.removeEventListener('loaded', onModelLoaded)
+      modelEl.removeEventListener('error', onError)
+      assetsEl.removeEventListener('loaded', onAssetsLoaded)
     }
   }, [])
 
@@ -79,7 +95,7 @@ const App: React.FC = () => {
           センサー許可
         </button>
       )}
-      <div id="loadingOverlay" ref={overlayRef} aria-hidden="true" style={{display:'none'}}>
+      <div id="loadingOverlay" ref={overlayRef} aria-hidden="true" style={{display:'flex'}}>
         <div className="loading-box">
           <div className="loading-label">Loading model…</div>
           <div className="loading-bar"><div className="loading-fill" style={{width:'35%'}}/></div>
@@ -110,11 +126,14 @@ const App: React.FC = () => {
           <a-camera position="0 0 0" wasd-controls-enabled="false">
             {/** 視線＋フューズカーソル（中央リング）。クリック対象は .clickable に限定 */}
             <a-entity
-              cursor="fuse: true; fuseTimeout: 800"
+              cursor="fuse: true; fuseTimeout: 400"
               raycaster="objects: .clickable"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-              material="color: white; shader: flat">
+              material="color: white; shader: flat"
+              animation__fusing="property: material.color; to: #3b82f6; startEvents: fusing; dur: 120; easing: easeOutQuad"
+              animation__fuseend="property: material.color; to: white; startEvents: fuseend; dur: 160; easing: easeOutQuad"
+              animation__click="property: material.color; to: white; startEvents: click; dur: 160; easing: easeOutQuad">
             </a-entity>
           </a-camera>
         </a-entity>

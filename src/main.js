@@ -86,7 +86,10 @@ function fadeInMaterials(materials, durationMs) {
   requestAnimationFrame(step)
 }
 
+let isLoadingModel = false
+
 function summon() {
+  isLoadingModel = true
   try { window.dispatchEvent(new CustomEvent('glb-load-start')) } catch (_) {}
   if (spawnedModel && spawnedModel.parentNode) {
     spawnedModel.parentNode.removeChild(spawnedModel)
@@ -116,13 +119,19 @@ function summon() {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         entity.emit('startDrop')
+        if (isLoadingModel) {
+          isLoadingModel = false
+          try { window.dispatchEvent(new CustomEvent('glb-load-complete')) } catch (_) {}
+        }
       })
     })
-    try { window.dispatchEvent(new CustomEvent('glb-load-complete')) } catch (_) {}
   })
 
   entity.addEventListener('model-error', () => {
-    try { window.dispatchEvent(new CustomEvent('glb-load-error')) } catch (_) {}
+    if (isLoadingModel) {
+      isLoadingModel = false
+      try { window.dispatchEvent(new CustomEvent('glb-load-error')) } catch (_) {}
+    }
   })
 
   spawnRoot.appendChild(entity)

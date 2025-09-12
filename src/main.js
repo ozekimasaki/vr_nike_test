@@ -1,5 +1,3 @@
-import './style.css'
-
 // Three.jsのアセットキャッシュを有効化（初回以降のクローンや素材取得を高速化）
 try {
   if (window.AFRAME && window.AFRAME.THREE && window.AFRAME.THREE.Cache) {

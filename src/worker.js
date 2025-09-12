@@ -20,11 +20,6 @@ export default {
     function b64urlFromString(str) {
       return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
     }
-    function stringFromB64url(b64) {
-      const pad = '='.repeat((4 - (b64.length % 4)) % 4)
-      const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/')
-      return atob(s)
-    }
     async function signPayload(secret, payloadStr) {
       const key = await importHmacKey(secret)
       const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payloadStr))
@@ -37,27 +32,6 @@ export default {
       const payloadStr = JSON.stringify(payload)
       const token = b64urlFromString(payloadStr) + '.' + await signPayload(secret, payloadStr)
       return token
-    }
-    async function verifyToken(secret, req, token) {
-      if (!token || !token.includes('.')) return false
-      const [p, s] = token.split('.')
-      let payloadStr
-      try {
-        payloadStr = stringFromB64url(p)
-      } catch (_) { return false }
-      let payload
-      try {
-        payload = JSON.parse(payloadStr)
-      } catch (_) { return false }
-      if (!payload || typeof payload.exp !== 'number') return false
-      if (Date.now() > payload.exp) return false
-      const expected = await signPayload(secret, payloadStr)
-      return expected === s
-    }
-    function getCookie(req, name) {
-      const cookie = req.headers.get('Cookie') || ''
-      const m = cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'))
-      return m ? decodeURIComponent(m[1]) : ''
     }
 
     // Protected proxy: serve model via Worker only

@@ -106,7 +106,7 @@ const App: React.FC = () => {
           ></a-asset-item>
         </a-assets>
 
-        <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
+        <a-plane id="floor" className="teleportable" rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
 
         {/** 壁（見えやすいように少し背を高く、内寸は床20x20に合致） */}
         <a-box position="0 1 -10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
@@ -136,7 +136,7 @@ const App: React.FC = () => {
 
         <a-entity id="spawnRoot" position="0 0 0"></a-entity>
 
-        <a-entity id="summonButton3D" class="clickable"
+        <a-entity id="summonButton3D" className="clickable"
                   position="0 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #ff6b6b; metalness: 0.4; roughness: 0.6"
@@ -156,7 +156,7 @@ const App: React.FC = () => {
           </a-entity>
         </a-entity>
 
-        <a-entity id="stopRotateButton3D" class="clickable"
+        <a-entity id="stopRotateButton3D" className="clickable"
                   position="0 1.35 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #ef4444; metalness: 0.2; roughness: 0.7"
@@ -174,7 +174,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: STOP; align: center; color: #fff; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="rotateButton3D" class="clickable"
+        <a-entity id="rotateButton3D" className="clickable"
                   position="-0.9 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #3b82f6; metalness: 0.4; roughness: 0.6"
@@ -192,7 +192,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: ROTATE; align: center; color: #fff; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="speedUpButton3D" class="clickable"
+        <a-entity id="speedUpButton3D" className="clickable"
                   position="-0.9 1.35 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #fbbf24; metalness: 0.4; roughness: 0.5"
@@ -210,7 +210,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: 速度UP; align: center; color: #7c5f00; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="vanishButton3D" class="clickable"
+        <a-entity id="vanishButton3D" className="clickable"
                   position="0.9 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #22c55e; metalness: 0.4; roughness: 0.6"

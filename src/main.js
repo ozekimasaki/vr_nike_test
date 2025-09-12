@@ -33,6 +33,8 @@ try {
 } catch (_) {}
 
 const spawnRoot = document.getElementById('spawnRoot')
+const params = new URLSearchParams(location.search || '')
+const DEBUG = params.get('debug') === '1'
 const button3D = document.getElementById('summonButton3D')
 const rotateButton3D = document.getElementById('rotateButton3D')
 const speedUpButton3D = document.getElementById('speedUpButton3D')
@@ -273,6 +275,14 @@ try {
     sceneEl.addEventListener('click', (ev) => {
       try {
         const el = (ev && ev.detail && ev.detail.el) || null
+        if (DEBUG) {
+          try {
+            console.log('[click] scene', {
+              el: el && (el.id || el.className || el.tagName),
+              targetId: el && el.id
+            })
+          } catch (_) {}
+        }
         if (!el) return
         // 近い祖先にボタンIDを持つ要素があれば、その処理を呼び出す
         const host = (el.closest && el.closest('#summonButton3D, #rotateButton3D, #speedUpButton3D, #vanishButton3D, #stopRotateButton3D')) || null
@@ -337,6 +347,15 @@ try {
         const d = ev.detail || {}
         // 念のため対象確認
         if (d?.el !== floorEl) return
+        if (DEBUG) {
+          try {
+            console.log('[click] floor', {
+              el: d.el && (d.el.id || d.el.className || d.el.tagName),
+              point: d.intersection && d.intersection.point,
+              intersections: d.intersections && d.intersections.length
+            })
+          } catch (_) {}
+        }
         const intersection = d.intersection || d.intersections?.[0]
         if (!intersection || !intersection.point) return
         const p = intersection.point

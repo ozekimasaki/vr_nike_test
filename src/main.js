@@ -87,6 +87,7 @@ function fadeInMaterials(materials, durationMs) {
 }
 
 function summon() {
+  try { window.dispatchEvent(new CustomEvent('glb-load-start')) } catch (_) {}
   if (spawnedModel && spawnedModel.parentNode) {
     spawnedModel.parentNode.removeChild(spawnedModel)
     spawnedModel = null
@@ -117,6 +118,11 @@ function summon() {
         entity.emit('startDrop')
       })
     })
+    try { window.dispatchEvent(new CustomEvent('glb-load-complete')) } catch (_) {}
+  })
+
+  entity.addEventListener('model-error', () => {
+    try { window.dispatchEvent(new CustomEvent('glb-load-error')) } catch (_) {}
   })
 
   spawnRoot.appendChild(entity)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 declare global {
   interface Window {
@@ -8,6 +8,7 @@ declare global {
 }
 
 const App: React.FC = () => {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
 
   // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
@@ -16,11 +17,41 @@ const App: React.FC = () => {
     if (t) setToken(t)
   }, [])
 
-  // A-Frameデフォルトのローディングを使用するため、独自ローディング処理は無効化
+  // モデル読み込み（summon時）に合わせた軽量オーバーレイ
+  useEffect(() => {
+    const show = () => {
+      const el = overlayRef.current
+      if (!el) return
+      el.style.display = 'flex'
+      el.style.opacity = '1'
+      el.style.pointerEvents = 'auto'
+    }
+    const hide = () => {
+      const el = overlayRef.current
+      if (!el) return
+      el.style.opacity = '0'
+      el.style.pointerEvents = 'none'
+      setTimeout(() => { if (el) el.style.display = 'none' }, 300)
+    }
+    window.addEventListener('glb-load-start', show)
+    window.addEventListener('glb-load-complete', hide)
+    window.addEventListener('glb-load-error', hide)
+    return () => {
+      window.removeEventListener('glb-load-start', show)
+      window.removeEventListener('glb-load-complete', hide)
+      window.removeEventListener('glb-load-error', hide)
+    }
+  }, [])
 
   return (
     <>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: true">
+      <div id="loadingOverlay" ref={overlayRef} aria-hidden="true" style={{display:'none'}}>
+        <div className="loading-box">
+          <div className="loading-label">Loading model…</div>
+          <div className="loading-bar"><div className="loading-fill" style={{width:'35%'}}/></div>
+        </div>
+      </div>
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false">
         <a-assets timeout="0">
           <a-asset-item
             id="modelGLB"

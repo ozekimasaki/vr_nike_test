@@ -21,9 +21,9 @@ const App: React.FC = () => {
 
   // 2) token が用意できてからアセット進捗のリスナーを登録
   useEffect(() => {
-    if (!token) return
+    const assetsEl = document.querySelector('a-assets') as HTMLElement | null
     const modelEl = document.getElementById('modelGLB') as HTMLElement | null
-    if (!modelEl) return
+    if (!assetsEl || !modelEl) return
 
     function showOverlay() {
       const el = overlayRef.current
@@ -57,12 +57,19 @@ const App: React.FC = () => {
       hideOverlay()
     }
 
-    modelEl.addEventListener('progress', onProgress as EventListener)
+    // 開始時に表示しておく（progressが来ない環境でも見えるように）
+    showOverlay()
+    // A-Frameは progress を a-assets が発火する
+    assetsEl.addEventListener('progress', onProgress as EventListener)
+    // 個別完了 or 全完了で閉じる
     modelEl.addEventListener('loaded', onLoaded as EventListener)
+    assetsEl.addEventListener('loaded', onLoaded as EventListener)
+    modelEl.addEventListener('error', () => hideOverlay())
 
     return () => {
-      modelEl.removeEventListener('progress', onProgress as EventListener)
+      assetsEl.removeEventListener('progress', onProgress as EventListener)
       modelEl.removeEventListener('loaded', onLoaded as EventListener)
+      assetsEl.removeEventListener('loaded', onLoaded as EventListener)
     }
   }, [token])
 

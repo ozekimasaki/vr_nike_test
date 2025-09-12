@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 
 declare global {
   interface Window {
@@ -10,6 +10,7 @@ declare global {
 const App: React.FC = () => {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
+  const [showMotionBtn, setShowMotionBtn] = useState<boolean>(false)
 
   // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
   useEffect(() => {
@@ -43,8 +44,41 @@ const App: React.FC = () => {
     }
   }, [])
 
+  // iOS 13+ のモーションセンサー許可ボタン表示制御
+  useEffect(() => {
+    try {
+      const DM: any = (window as any).DeviceMotionEvent
+      const DO: any = (window as any).DeviceOrientationEvent
+      const needPermission = (DM && typeof DM.requestPermission === 'function') || (DO && typeof DO.requestPermission === 'function')
+      if (needPermission) setShowMotionBtn(true)
+    } catch (_) {}
+  }, [])
+
+  const handleEnableMotion = useCallback(async () => {
+    try {
+      const DM: any = (window as any).DeviceMotionEvent
+      const DO: any = (window as any).DeviceOrientationEvent
+      if (DM && typeof DM.requestPermission === 'function') {
+        try { await DM.requestPermission() } catch (_) {}
+      }
+      if (DO && typeof DO.requestPermission === 'function') {
+        try { await DO.requestPermission() } catch (_) {}
+      }
+    } finally {
+      setShowMotionBtn(false)
+    }
+  }, [])
+
   return (
     <>
+      {showMotionBtn && (
+        <button
+          onClick={handleEnableMotion}
+          style={{ position: 'fixed', right: 16, bottom: 16, zIndex: 10, padding: '10px 14px', borderRadius: 9999, border: 'none', background: '#111827', color: '#fff' }}
+        >
+          センサー許可
+        </button>
+      )}
       <div id="loadingOverlay" ref={overlayRef} aria-hidden="true" style={{display:'none'}}>
         <div className="loading-box">
           <div className="loading-label">Loading model…</div>
@@ -73,7 +107,16 @@ const App: React.FC = () => {
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
         <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false">
-          <a-camera position="0 0 0" wasd-controls-enabled="false"></a-camera>
+          <a-camera position="0 0 0" wasd-controls-enabled="false">
+            {/** 視線＋フューズカーソル（中央リング）。クリック対象は .clickable に限定 */}
+            <a-entity
+              cursor="fuse: true; fuseTimeout: 800"
+              raycaster="objects: .clickable"
+              position="0 0 -1"
+              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+              material="color: white; shader: flat">
+            </a-entity>
+          </a-camera>
         </a-entity>
 
         <a-entity id="spawnRoot" position="0 0 0"></a-entity>
@@ -170,7 +213,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: VANISH; align: center; color: #fff; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+        {/** スマホ最適化のためマウスレイカーソルは削除 */}
 
         <a-sky color="#ECECEC"></a-sky>
       </a-scene>

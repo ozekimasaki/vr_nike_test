@@ -80,6 +80,13 @@ export default {
         const headers = new Headers()
         headers.set('Cache-Control', 'private, max-age=0, no-store')
         headers.set('Content-Type', object.httpMetadata?.contentType || 'model/gltf-binary')
+        if (typeof object.size === 'number') {
+          headers.set('Content-Length', String(object.size))
+          headers.set('Accept-Ranges', 'bytes')
+        }
+        if (request.method === 'HEAD') {
+          return new Response(null, { status: 200, headers })
+        }
         return new Response(object.body, { status: 200, headers })
       } catch (e) {
         return new Response('R2 error', { status: 500 })

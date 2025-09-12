@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const progressTextRef = useRef<HTMLSpanElement | null>(null)
   const progressFillRef = useRef<HTMLDivElement | null>(null)
+  const sizeTextRef = useRef<HTMLSpanElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
 
   // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
@@ -49,6 +50,11 @@ const App: React.FC = () => {
       const percent = total > 0 ? Math.min(100, Math.floor((loaded / total) * 100)) : 0
       if (progressTextRef.current) progressTextRef.current.textContent = `${percent}%`
       if (progressFillRef.current) progressFillRef.current.style.width = `${percent}%`
+      if (sizeTextRef.current) {
+        const fmt = (n: number) => n >= 1e6 ? (n/1e6).toFixed(2)+' MB' : n >= 1e3 ? (n/1e3).toFixed(1)+' KB' : n+' B'
+        if (total > 0) sizeTextRef.current.textContent = `${fmt(loaded)} / ${fmt(total)}`
+        else sizeTextRef.current.textContent = `${fmt(loaded)}`
+      }
     }
 
     const onLoaded = () => {
@@ -77,7 +83,7 @@ const App: React.FC = () => {
     <>
       <div id="loadingOverlay" ref={overlayRef} aria-hidden="true">
         <div className="loading-box">
-          <div className="loading-label">Loading model… <span ref={progressTextRef}>0%</span></div>
+          <div className="loading-label">Loading model… <span ref={progressTextRef}>0%</span> <span ref={sizeTextRef} style={{marginLeft: 8, opacity: 0.8}}></span></div>
           <div className="loading-bar">
             <div className="loading-fill" ref={progressFillRef} style={{ width: '0%' }} />
           </div>

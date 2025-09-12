@@ -136,7 +136,7 @@ const App: React.FC = () => {
             position="0 0 0"
             wasd-controls-enabled="false"
             cursor={useMouseCursor ? 'rayOrigin: mouse' : 'fuse: true; fuseTimeout: 400'}
-            raycaster={"objects: [geometry]; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
+            raycaster={"objects: .clickable, .clickable *; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
           >
             {/** 表示専用のリング。レイはカメラ原点から飛ぶのでズレなし */}
             <a-entity

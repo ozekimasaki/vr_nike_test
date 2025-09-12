@@ -294,7 +294,7 @@ try {
         const hitEl = (d && (d.intersectedEl || d.el)) || null
         if (DEBUG) { try { console.log('[cursor click]', { hit: hitEl && (hitEl.id || hitEl.className || hitEl.tagName) }) } catch (_) {} }
         if (!hitEl) return
-        // ボタン: 直ヒット or 祖先探索
+        // 非ボタン要素は無視
         let cur = hitEl
         while (cur && cur.parentElement) {
           if (cur.id === 'summonButton3D' || cur.id === 'rotateButton3D' || cur.id === 'speedUpButton3D' || cur.id === 'vanishButton3D' || cur.id === 'stopRotateButton3D') break

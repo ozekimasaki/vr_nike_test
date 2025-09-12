@@ -11,6 +11,7 @@ const App: React.FC = () => {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
   const [showMotionBtn, setShowMotionBtn] = useState<boolean>(false)
+  const [useMouseCursor, setUseMouseCursor] = useState<boolean>(false)
 
   // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
   useEffect(() => {
@@ -81,6 +82,14 @@ const App: React.FC = () => {
     }
   }, [])
 
+  // URLクエリで `?mouse=1` のときにマウス/タッチカーソルモードへ
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search)
+      setUseMouseCursor(params.get('mouse') === '1')
+    } catch (_) {}
+  }, [])
+
   return (
     <>
       <div id="fadeOverlay" style={{position:'fixed', inset:0 as any, background:'#000', opacity:0, display:'none', transition:'opacity 0.2s ease', pointerEvents:'none', zIndex:9998}} />
@@ -121,17 +130,29 @@ const App: React.FC = () => {
 
         <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false" clamp-position>
           <a-camera position="0 0 0" wasd-controls-enabled="false">
-            {/** a-cursor と等価（A-Frame 仕様）。TypeScriptのJSX制約により a-entity で記述 */}
-            <a-entity
-              cursor="fuse: true; fuseTimeout: 400"
-              raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
-              position="0 0 -1"
-              geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-              material="color: white; shader: flat; depthTest: false"
-              animation__fusing="property: material.color; to: #3b82f6; startEvents: fusing; dur: 120; easing: easeOutQuad"
-              animation__fuseend="property: material.color; to: white; startEvents: fuseend; dur: 160; easing: easeOutQuad"
-              animation__click="property: material.color; to: white; startEvents: click; dur: 160; easing: easeOutQuad"
-            ></a-entity>
+            {/** a-cursor 等価。?mouse=1 で rayOrigin: mouse に切替 */}
+            {useMouseCursor ? (
+              <a-entity
+                cursor="rayOrigin: mouse"
+                raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+                material="color: white; shader: flat; depthTest: false"
+                animation__down="property: material.color; to: #3b82f6; startEvents: mousedown; dur: 80; easing: easeOutQuad"
+                animation__up="property: material.color; to: white; startEvents: mouseup; dur: 120; easing: easeOutQuad"
+              ></a-entity>
+            ) : (
+              <a-entity
+                cursor="fuse: true; fuseTimeout: 400"
+                raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
+                material="color: white; shader: flat; depthTest: false"
+                animation__fusing="property: material.color; to: #3b82f6; startEvents: fusing; dur: 120; easing: easeOutQuad"
+                animation__fuseend="property: material.color; to: white; startEvents: fuseend; dur: 160; easing: easeOutQuad"
+                animation__click="property: material.color; to: white; startEvents: click; dur: 160; easing: easeOutQuad"
+              ></a-entity>
+            )}
           </a-camera>
         </a-entity>
 

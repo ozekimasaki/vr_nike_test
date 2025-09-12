@@ -124,7 +124,7 @@ const App: React.FC = () => {
             {/** a-cursor と等価（A-Frame 仕様）。TypeScriptのJSX制約により a-entity で記述 */}
             <a-entity
               cursor="fuse: true; fuseTimeout: 400"
-              raycaster="objects: .clickable, #floor; near: 0.05; far: 100"
+              raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
               material="color: white; shader: flat; depthTest: false"

@@ -266,6 +266,52 @@ window.addEventListener('keydown', (e) => {
   requestAnimationFrame(goUp)
 })
 
+// クリックイベントのデリゲーション（子のジオメトリに当たっても親ボタンを特定して処理）
+try {
+  const sceneEl = document.querySelector('a-scene')
+  if (sceneEl) {
+    sceneEl.addEventListener('click', (ev) => {
+      try {
+        const el = (ev && ev.detail && ev.detail.el) || null
+        if (!el) return
+        // 近い祖先にボタンIDを持つ要素があれば、その処理を呼び出す
+        const host = (el.closest && el.closest('#summonButton3D, #rotateButton3D, #speedUpButton3D, #vanishButton3D, #stopRotateButton3D')) || null
+        // A-Frame要素で closest が無い場合のフォールバック
+        let cur = el
+        while (!host && cur && cur.parentElement) {
+          if (cur.id === 'summonButton3D' || cur.id === 'rotateButton3D' || cur.id === 'speedUpButton3D' || cur.id === 'vanishButton3D' || cur.id === 'stopRotateButton3D') {
+            break
+          }
+          cur = cur.parentElement
+        }
+        const target = host || cur
+        if (!target || !target.id) return
+        switch (target.id) {
+          case 'summonButton3D':
+            return summon()
+          case 'rotateButton3D':
+            currentRotateSpeedDegPerSec = 90
+            return startRotate()
+          case 'speedUpButton3D':
+            if (!spawnedModel) return
+            currentRotateSpeedDegPerSec = Math.min(currentRotateSpeedDegPerSec * 1.5, 2880)
+            if (!rotateAnimationId) startRotate()
+            return
+          case 'vanishButton3D':
+            return vanishUp()
+          case 'stopRotateButton3D':
+            stopRotate()
+            if (spawnedModel) spawnedModel.setAttribute('rotation', { x: 0, y: 0, z: 0 })
+            currentRotateSpeedDegPerSec = 90
+            return
+          default:
+            return
+        }
+      } catch (_) {}
+    })
+  }
+} catch (_) {}
+
 // 視線テレポート（床直ヒット時のみワープ＋黒フェード）
 try {
   if (rig && floorEl) {

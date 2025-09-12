@@ -18,7 +18,7 @@ const App: React.FC = () => {
     if (t) setToken(t)
   }, [])
 
-  // ページロード時: モデルアセットの完全読み込みまでオーバーレイを表示
+  // ページロード時: モデルGLBの完全読み込み（#modelGLB.loaded）までオーバーレイを表示
   useEffect(() => {
     const el = overlayRef.current
     if (el) {
@@ -34,9 +34,8 @@ const App: React.FC = () => {
       setTimeout(() => { if (ov) ov.style.display = 'none' }, 300)
     }
 
-    const assetsEl = document.querySelector('a-assets') as any
     const modelEl = document.getElementById('modelGLB') as any
-    if (!assetsEl || !modelEl) return
+    if (!modelEl) return
 
     // 既に読み込み済みなら即閉じる
     // a-asset-item は hasLoaded を持つ
@@ -46,17 +45,14 @@ const App: React.FC = () => {
     }
 
     const onModelLoaded = () => hide()
-    const onAssetsLoaded = () => hide()
     const onError = () => hide()
 
     modelEl.addEventListener('loaded', onModelLoaded, { once: true })
     modelEl.addEventListener('error', onError, { once: true })
-    assetsEl.addEventListener('loaded', onAssetsLoaded, { once: true })
 
     return () => {
       modelEl.removeEventListener('loaded', onModelLoaded)
       modelEl.removeEventListener('error', onError)
-      assetsEl.removeEventListener('loaded', onAssetsLoaded)
     }
   }, [])
 

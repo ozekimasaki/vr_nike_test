@@ -41,6 +41,11 @@ const speedUpButton3D = document.getElementById('speedUpButton3D')
 const vanishButton3D = document.getElementById('vanishButton3D')
 const stopRotateButton3D = document.getElementById('stopRotateButton3D')
 const rig = document.getElementById('rig')
+let gazeCursorEl = null
+try {
+  const scene = document.querySelector('a-scene')
+  gazeCursorEl = scene && scene.querySelector('a-camera a-entity[cursor]')
+} catch (_) {}
 
 let spawnedModel = null
 let rotateAnimationId = null
@@ -260,4 +265,42 @@ window.addEventListener('keydown', (e) => {
   }
   requestAnimationFrame(goUp)
 })
+
+// 視線テレポート（床や teleportable クラス対象をクリックで移動）
+try {
+  if (gazeCursorEl && rig) {
+    const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+    let moveAnimId = null
+    const moveRigSmooth = (toX, toZ, dur = 420) => {
+      if (!rig) return
+      if (moveAnimId) cancelAnimationFrame(moveAnimId)
+      const start = performance.now()
+      const p = rig.object3D.position
+      const sx = p.x, sz = p.z
+      const sy = p.y
+      function step(now) {
+        const t = Math.min(1, (now - start) / dur)
+        const e = easeInOutCubic(t)
+        p.x = sx + (toX - sx) * e
+        p.z = sz + (toZ - sz) * e
+        p.y = sy // 高さ固定
+        if (t < 1) moveAnimId = requestAnimationFrame(step)
+      }
+      moveAnimId = requestAnimationFrame(step)
+    }
+
+    gazeCursorEl.addEventListener('click', (ev) => {
+      try {
+        const detail = ev.detail || {}
+        const intersection = detail.intersection || detail.intersections?.[0]
+        const target = detail?.el || ev.target
+        const isTeleportable = target && (target.classList?.contains('teleportable') || target.id === 'floor')
+        if (!intersection || !isTeleportable) return
+        const point = intersection.point || (intersection.intersection && intersection.intersection.point)
+        if (!point) return
+        moveRigSmooth(point.x, point.z)
+      } catch (_) {}
+    })
+  }
+} catch (_) {}
 

@@ -106,7 +106,7 @@ const App: React.FC = () => {
           ></a-asset-item>
         </a-assets>
 
-        <a-plane rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
+        <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="20" height="20" color="#CCC" position="0 0 0" shadow="receive: true"></a-plane>
 
         {/** 壁（見えやすいように少し背を高く、内寸は床20x20に合致） */}
         <a-box position="0 1 -10" depth="0.2" width="20" height="2" color="#9ca3af" shadow="cast: true"></a-box>
@@ -118,12 +118,12 @@ const App: React.FC = () => {
         <a-entity light="type: hemisphere; color: #ffffff; groundColor: #b9b9b9; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
-        <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false">
+        <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false" clamp-position>
           <a-camera position="0 0 0" wasd-controls-enabled="false">
             {/** 視線＋フューズカーソル（中央リング）。クリック対象は .clickable に限定 */}
             <a-entity
               cursor="fuse: true; fuseTimeout: 400"
-              raycaster="objects: .clickable"
+              raycaster="objects: .clickable, .teleportable"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
               material="color: white; shader: flat"

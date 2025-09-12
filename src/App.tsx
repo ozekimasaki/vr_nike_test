@@ -134,7 +134,7 @@ const App: React.FC = () => {
             {useMouseCursor ? (
               <a-entity
                 cursor="rayOrigin: mouse"
-                raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
+                raycaster="objects: .clickable, .clickable *, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
                 position="0 0 -1"
                 geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
                 material="color: white; shader: flat; depthTest: false"
@@ -144,7 +144,7 @@ const App: React.FC = () => {
             ) : (
               <a-entity
                 cursor="fuse: true; fuseTimeout: 400"
-                raycaster="objects: .clickable, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
+                raycaster="objects: .clickable, .clickable *, #floor; near: 0.05; far: 100; interval: 0; recursive: true"
                 position="0 0 -1"
                 geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
                 material="color: white; shader: flat; depthTest: false"

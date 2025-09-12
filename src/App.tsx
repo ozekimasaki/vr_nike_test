@@ -136,7 +136,7 @@ const App: React.FC = () => {
             position="0 0 0"
             wasd-controls-enabled="false"
             cursor={useMouseCursor ? 'rayOrigin: mouse' : 'fuse: true; fuseTimeout: 400'}
-            raycaster={"objects: .clickable, .clickable *; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
+            raycaster={"objects: [data-clickable]; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
           >
             {/** 表示専用のリング。レイはカメラ原点から飛ぶのでズレなし */}
             <a-entity
@@ -149,7 +149,7 @@ const App: React.FC = () => {
 
         <a-entity id="spawnRoot" position="0 0 0"></a-entity>
 
-        <a-entity id="summonButton3D" className="clickable"
+        <a-entity id="summonButton3D" className="clickable" data-clickable
                   position="0 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #ff6b6b; metalness: 0.4; roughness: 0.6"
@@ -169,7 +169,7 @@ const App: React.FC = () => {
           </a-entity>
         </a-entity>
 
-        <a-entity id="stopRotateButton3D" className="clickable"
+        <a-entity id="stopRotateButton3D" className="clickable" data-clickable
                   position="0 1.35 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #ef4444; metalness: 0.2; roughness: 0.7"
@@ -187,7 +187,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: STOP; align: center; color: #fff; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="rotateButton3D" className="clickable"
+        <a-entity id="rotateButton3D" className="clickable" data-clickable
                   position="-0.9 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #3b82f6; metalness: 0.4; roughness: 0.6"
@@ -205,7 +205,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: ROTATE; align: center; color: #fff; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="speedUpButton3D" className="clickable"
+        <a-entity id="speedUpButton3D" className="clickable" data-clickable
                   position="-0.9 1.35 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #fbbf24; metalness: 0.4; roughness: 0.5"
@@ -223,7 +223,7 @@ const App: React.FC = () => {
           <a-entity position="0 0 0.035" text="value: 速度UP; align: center; color: #7c5f00; width: 2"></a-entity>
         </a-entity>
 
-        <a-entity id="vanishButton3D" className="clickable"
+        <a-entity id="vanishButton3D" className="clickable" data-clickable
                   position="0.9 1 3"
                   geometry="primitive: box; width: 0.6; height: 0.25; depth: 0.06"
                   material="color: #22c55e; metalness: 0.4; roughness: 0.6"

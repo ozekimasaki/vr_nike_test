@@ -120,7 +120,7 @@ const App: React.FC = () => {
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
         <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false" clamp-position>
-          <a-camera position="0 0 0" wasd-controls-enabled="false" cursor="fuse: true; fuseTimeout: 400" raycaster="objects: .clickable, .teleportable; near: 0.05; far: 100">
+          <a-camera position="0 0 0" wasd-controls-enabled="false" cursor="fuse: true; fuseTimeout: 400" raycaster="objects: .clickable, #floor; near: 0.05; far: 100">
             {/** 表示専用の中央リング（レイはカメラから飛ぶ）。埋まり防止で depthTest を無効化 */}
             <a-entity
               position="0 0 -1"

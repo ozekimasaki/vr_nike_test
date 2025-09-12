@@ -270,7 +270,7 @@ window.addEventListener('keydown', (e) => {
 
 // クリックは cursor(gazeCursor) 起点で処理するため、シーン側のデリゲーションは無効化
 
-// 視線テレポート（床直ヒット時のみワープ＋黒フェード）とボタン処理を cursor(click) で一元化
+// クリック処理を cursor(click) で一元化（床ワープは無効化）
 try {
   if (rig && floorEl) {
     const fade = {
@@ -294,18 +294,6 @@ try {
         const hitEl = (d && (d.intersectedEl || d.el)) || null
         if (DEBUG) { try { console.log('[cursor click]', { hit: hitEl && (hitEl.id || hitEl.className || hitEl.tagName) }) } catch (_) {} }
         if (!hitEl) return
-        // 床
-        if (hitEl === floorEl) {
-          const intersection = d.intersection || d.intersections?.[0]
-          if (!intersection || !intersection.point) return
-          const p = intersection.point
-          fade.show()
-          setTimeout(() => {
-            try { const pos = rig.object3D.position; pos.x = p.x; pos.z = p.z } catch (_) {}
-            fade.hide()
-          }, 140)
-          return
-        }
         // ボタン: 直ヒット or 祖先探索
         let cur = hitEl
         while (cur && cur.parentElement) {

@@ -39,6 +39,7 @@ const speedUpButton3D = document.getElementById('speedUpButton3D')
 const vanishButton3D = document.getElementById('vanishButton3D')
 const stopRotateButton3D = document.getElementById('stopRotateButton3D')
 const rig = document.getElementById('rig')
+const floorEl = document.getElementById('floor')
 let gazeCursorEl = null
 try {
   const scene = document.querySelector('a-scene')
@@ -264,39 +265,42 @@ window.addEventListener('keydown', (e) => {
   requestAnimationFrame(goUp)
 })
 
-// 視線テレポート（床や teleportable クラス対象をクリックで移動）
+// 視線テレポート（床直ヒット時のみワープ＋黒フェード）
 try {
-  if (gazeCursorEl && rig) {
-    const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
-    let moveAnimId = null
-    const moveRigSmooth = (toX, toZ, dur = 420) => {
-      if (!rig) return
-      if (moveAnimId) cancelAnimationFrame(moveAnimId)
-      const start = performance.now()
-      const p = rig.object3D.position
-      const sx = p.x, sz = p.z
-      const sy = p.y
-      function step(now) {
-        const t = Math.min(1, (now - start) / dur)
-        const e = easeInOutCubic(t)
-        p.x = sx + (toX - sx) * e
-        p.z = sz + (toZ - sz) * e
-        p.y = sy // 高さ固定
-        if (t < 1) moveAnimId = requestAnimationFrame(step)
+  if (gazeCursorEl && rig && floorEl) {
+    const fade = {
+      el: document.getElementById('fadeOverlay'),
+      show(dur = 160) {
+        if (!this.el) return
+        this.el.style.display = 'block'
+        this.el.style.opacity = '1'
+      },
+      hide(dur = 200) {
+        if (!this.el) return
+        this.el.style.opacity = '0'
+        setTimeout(() => { if (this.el) this.el.style.display = 'none' }, dur)
       }
-      moveAnimId = requestAnimationFrame(step)
     }
 
     gazeCursorEl.addEventListener('click', (ev) => {
       try {
-        const detail = ev.detail || {}
-        const intersection = detail.intersection || detail.intersections?.[0]
-        const target = detail?.el || ev.target
-        const isTeleportable = target && (target.classList?.contains('teleportable') || target.id === 'floor')
-        if (!intersection || !isTeleportable) return
-        const point = intersection.point || (intersection.intersection && intersection.intersection.point)
-        if (!point) return
-        moveRigSmooth(point.x, point.z)
+        const d = ev.detail || {}
+        const target = d?.el
+        // ボタンなどは貫通させない: 床そのものにヒットした時のみ
+        if (!target || target !== floorEl) return
+        const intersection = d.intersection || d.intersections?.[0]
+        if (!intersection || !intersection.point) return
+        const p = intersection.point
+        // 黒フェード→瞬間移動→フェード解除
+        fade.show()
+        setTimeout(() => {
+          try {
+            const pos = rig.object3D.position
+            pos.x = p.x
+            pos.z = p.z
+          } catch (_) {}
+          fade.hide()
+        }, 140)
       } catch (_) {}
     })
   }

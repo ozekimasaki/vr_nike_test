@@ -83,6 +83,7 @@ const App: React.FC = () => {
 
   return (
     <>
+      <div id="fadeOverlay" style={{position:'fixed', inset:0 as any, background:'#000', opacity:0, display:'none', transition:'opacity 0.2s ease', pointerEvents:'none', zIndex:9998}} />
       {showMotionBtn && (
         <button
           onClick={handleEnableMotion}

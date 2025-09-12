@@ -135,6 +135,7 @@ const App: React.FC = () => {
             {/** a-cursor 等価。?mouse=1 で rayOrigin: mouse に切替 */}
             {useMouseCursor ? (
               <a-entity
+                id="gazeCursor"
                 cursor="rayOrigin: mouse"
                 raycaster={"objects: .clickable, .clickable *, #floor; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
                 position="0 0 -1"
@@ -145,6 +146,7 @@ const App: React.FC = () => {
               ></a-entity>
             ) : (
               <a-entity
+                id="gazeCursor"
                 cursor="fuse: true; fuseTimeout: 400"
                 raycaster={"objects: .clickable, .clickable *, #floor; near: 0.05; far: 100; interval: 0; recursive: true" + (useDebug ? '; showLine: true' : '')}
                 position="0 0 -1"

@@ -268,35 +268,52 @@ window.addEventListener('keydown', (e) => {
   requestAnimationFrame(goUp)
 })
 
-// クリックイベントのデリゲーション（子のジオメトリに当たっても親ボタンを特定して処理）
+// クリックは cursor(gazeCursor) 起点で処理するため、シーン側のデリゲーションは無効化
+
+// 視線テレポート（床直ヒット時のみワープ＋黒フェード）とボタン処理を cursor(click) で一元化
 try {
-  const sceneEl = document.querySelector('a-scene')
-  if (sceneEl) {
-    sceneEl.addEventListener('click', (ev) => {
+  if (rig && floorEl) {
+    const fade = {
+      el: document.getElementById('fadeOverlay'),
+      show(dur = 160) {
+        if (!this.el) return
+        this.el.style.display = 'block'
+        this.el.style.opacity = '1'
+      },
+      hide(dur = 200) {
+        if (!this.el) return
+        this.el.style.opacity = '0'
+        setTimeout(() => { if (this.el) this.el.style.display = 'none' }, dur)
+      }
+    }
+
+    const cursorEl = document.getElementById('gazeCursor')
+    if (cursorEl) cursorEl.addEventListener('click', (ev) => {
       try {
-        const el = (ev && ev.detail && ev.detail.el) || null
-        if (DEBUG) {
-          try {
-            console.log('[click] scene', {
-              el: el && (el.id || el.className || el.tagName),
-              targetId: el && el.id
-            })
-          } catch (_) {}
+        const d = ev && ev.detail
+        const hitEl = (d && (d.intersectedEl || d.el)) || null
+        if (DEBUG) { try { console.log('[cursor click]', { hit: hitEl && (hitEl.id || hitEl.className || hitEl.tagName) }) } catch (_) {} }
+        if (!hitEl) return
+        // 床
+        if (hitEl === floorEl) {
+          const intersection = d.intersection || d.intersections?.[0]
+          if (!intersection || !intersection.point) return
+          const p = intersection.point
+          fade.show()
+          setTimeout(() => {
+            try { const pos = rig.object3D.position; pos.x = p.x; pos.z = p.z } catch (_) {}
+            fade.hide()
+          }, 140)
+          return
         }
-        if (!el) return
-        // 近い祖先にボタンIDを持つ要素があれば、その処理を呼び出す
-        const host = (el.closest && el.closest('#summonButton3D, #rotateButton3D, #speedUpButton3D, #vanishButton3D, #stopRotateButton3D')) || null
-        // A-Frame要素で closest が無い場合のフォールバック
-        let cur = el
-        while (!host && cur && cur.parentElement) {
-          if (cur.id === 'summonButton3D' || cur.id === 'rotateButton3D' || cur.id === 'speedUpButton3D' || cur.id === 'vanishButton3D' || cur.id === 'stopRotateButton3D') {
-            break
-          }
+        // ボタン: 直ヒット or 祖先探索
+        let cur = hitEl
+        while (cur && cur.parentElement) {
+          if (cur.id === 'summonButton3D' || cur.id === 'rotateButton3D' || cur.id === 'speedUpButton3D' || cur.id === 'vanishButton3D' || cur.id === 'stopRotateButton3D') break
           cur = cur.parentElement
         }
-        const target = host || cur
-        if (!target || !target.id) return
-        switch (target.id) {
+        if (!cur || !cur.id) return
+        switch (cur.id) {
           case 'summonButton3D':
             return summon()
           case 'rotateButton3D':
@@ -317,68 +334,6 @@ try {
           default:
             return
         }
-      } catch (_) {}
-    })
-  }
-} catch (_) {}
-
-// 視線テレポート（床直ヒット時のみワープ＋黒フェード）
-try {
-  if (rig && floorEl) {
-    const fade = {
-      el: document.getElementById('fadeOverlay'),
-      show(dur = 160) {
-        if (!this.el) return
-        this.el.style.display = 'block'
-        this.el.style.opacity = '1'
-      },
-      hide(dur = 200) {
-        if (!this.el) return
-        this.el.style.opacity = '0'
-        setTimeout(() => { if (this.el) this.el.style.display = 'none' }, dur)
-      }
-    }
-
-    // デバッグログは一旦抑制（必要時に再有効化）
-
-    // a-cursor がヒット先へ click をディスパッチするので床の click で処理
-    floorEl.addEventListener('click', (ev) => {
-      try {
-        const d = ev.detail || {}
-        // 念のため対象確認
-        if (d?.el !== floorEl) return
-        if (DEBUG) {
-          try {
-            console.log('[click] floor', {
-              el: d.el && (d.el.id || d.el.className || d.el.tagName),
-              point: d.intersection && d.intersection.point,
-              intersections: d.intersections && d.intersections.length
-            })
-          } catch (_) {}
-        }
-        const intersection = d.intersection || d.intersections?.[0]
-        if (!intersection || !intersection.point) return
-        const p = intersection.point
-        // 黒フェード→瞬間移動→フェード解除
-        fade.show()
-        setTimeout(() => {
-          try {
-            const pos = rig.object3D.position
-            pos.x = p.x
-            pos.z = p.z
-          } catch (_) {}
-          fade.hide()
-          // フォーカス解除のためカーソルを一時停止→再開（次のクリックを有効化）
-          try {
-            const cam = document.querySelector('a-camera')
-            const cursorComp = cam && cam.components && cam.components.cursor
-            if (cursorComp) {
-              cursorComp.pause()
-              // 次フレームで再開してヒット状態をリセット
-              requestAnimationFrame(() => { try { cursorComp.play() } catch (_) {} })
-            }
-          } catch (_) {}
-        }, 140)
       } catch (err) { try { console.warn('[teleport] click handler error', err) } catch (_) {} }
     })
   }

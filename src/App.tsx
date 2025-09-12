@@ -120,14 +120,12 @@ const App: React.FC = () => {
         <a-entity light="type: directional; intensity: 1.4" position="2 6 3" target="#spawnRoot" shadow="cast: true"></a-entity>
 
         <a-entity id="rig" position="0 1.6 4" wasd-controls="acceleration: 35" look-controls="pointerLockEnabled: false" clamp-position>
-          <a-camera position="0 0 0" wasd-controls-enabled="false">
-            {/** 視線＋フューズカーソル（中央リング）。クリック対象は .clickable に限定 */}
+          <a-camera position="0 0 0" wasd-controls-enabled="false" cursor="fuse: true; fuseTimeout: 400" raycaster="objects: .clickable, .teleportable; near: 0.05; far: 100">
+            {/** 表示専用の中央リング（レイはカメラから飛ぶ）。埋まり防止で depthTest を無効化 */}
             <a-entity
-              cursor="fuse: true; fuseTimeout: 400"
-              raycaster="objects: .clickable, .teleportable"
               position="0 0 -1"
               geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-              material="color: white; shader: flat"
+              material="color: white; shader: flat; depthTest: false"
               animation__fusing="property: material.color; to: #3b82f6; startEvents: fusing; dur: 120; easing: easeOutQuad"
               animation__fuseend="property: material.color; to: white; startEvents: fuseend; dur: 160; easing: easeOutQuad"
               animation__click="property: material.color; to: white; startEvents: click; dur: 160; easing: easeOutQuad">

@@ -43,7 +43,8 @@ const floorEl = document.getElementById('floor')
 let gazeCursorEl = null
 try {
   const scene = document.querySelector('a-scene')
-  gazeCursorEl = scene && scene.querySelector('a-camera a-entity[cursor]')
+  // カメラに cursor/raycaster を付与したため、クリックは camera で受ける
+  gazeCursorEl = scene && scene.querySelector('a-camera')
 } catch (_) {}
 
 let spawnedModel = null

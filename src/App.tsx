@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 declare global {
   interface Window {
@@ -8,10 +8,6 @@ declare global {
 }
 
 const App: React.FC = () => {
-  const overlayRef = useRef<HTMLDivElement | null>(null)
-  const progressTextRef = useRef<HTMLSpanElement | null>(null)
-  const progressFillRef = useRef<HTMLDivElement | null>(null)
-  const sizeTextRef = useRef<HTMLSpanElement | null>(null)
   const [token, setToken] = useState<string | null>(() => (typeof window !== 'undefined' ? (window as any).M_T ?? null : null))
 
   // 1) 初回にトークンだけ取り込んで state に反映（描画トリガ）
@@ -20,76 +16,11 @@ const App: React.FC = () => {
     if (t) setToken(t)
   }, [])
 
-  // 2) token が用意できてからアセット進捗のリスナーを登録
-  useEffect(() => {
-    const assetsEl = document.querySelector('a-assets') as HTMLElement | null
-    const modelEl = document.getElementById('modelGLB') as HTMLElement | null
-    if (!assetsEl || !modelEl) return
-
-    function showOverlay() {
-      const el = overlayRef.current
-      if (!el) return
-      el.style.opacity = '1'
-      el.style.pointerEvents = 'auto'
-      el.style.display = 'flex'
-    }
-
-    function hideOverlay() {
-      const el = overlayRef.current
-      if (!el) return
-      el.style.opacity = '0'
-      el.style.pointerEvents = 'none'
-      setTimeout(() => { if (el) el.style.display = 'none' }, 300)
-    }
-
-    const onProgress = (e: Event & { detail?: any }) => {
-      showOverlay()
-      const detail = e.detail || {}
-      const loaded = Number(detail.loaded ?? 0)
-      const total = Number(detail.total ?? 0)
-      const percent = total > 0 ? Math.min(100, Math.floor((loaded / total) * 100)) : 0
-      if (progressTextRef.current) progressTextRef.current.textContent = `${percent}%`
-      if (progressFillRef.current) progressFillRef.current.style.width = `${percent}%`
-      if (sizeTextRef.current) {
-        const fmt = (n: number) => n >= 1e6 ? (n/1e6).toFixed(2)+' MB' : n >= 1e3 ? (n/1e3).toFixed(1)+' KB' : n+' B'
-        if (total > 0) sizeTextRef.current.textContent = `${fmt(loaded)} / ${fmt(total)}`
-        else sizeTextRef.current.textContent = `${fmt(loaded)}`
-      }
-    }
-
-    const onLoaded = () => {
-      if (progressTextRef.current) progressTextRef.current.textContent = '100%'
-      if (progressFillRef.current) progressFillRef.current.style.width = '100%'
-      hideOverlay()
-    }
-
-    // 開始時に表示しておく（progressが来ない環境でも見えるように）
-    showOverlay()
-    // A-Frameは progress を a-assets が発火する
-    assetsEl.addEventListener('progress', onProgress as EventListener)
-    // 個別完了 or 全完了で閉じる
-    modelEl.addEventListener('loaded', onLoaded as EventListener)
-    assetsEl.addEventListener('loaded', onLoaded as EventListener)
-    modelEl.addEventListener('error', () => hideOverlay())
-
-    return () => {
-      assetsEl.removeEventListener('progress', onProgress as EventListener)
-      modelEl.removeEventListener('loaded', onLoaded as EventListener)
-      assetsEl.removeEventListener('loaded', onLoaded as EventListener)
-    }
-  }, [token])
+  // A-Frameデフォルトのローディングを使用するため、独自ローディング処理は無効化
 
   return (
     <>
-      <div id="loadingOverlay" ref={overlayRef} aria-hidden="true">
-        <div className="loading-box">
-          <div className="loading-label">Loading model… <span ref={progressTextRef}>0%</span> <span ref={sizeTextRef} style={{marginLeft: 8, opacity: 0.8}}></span></div>
-          <div className="loading-bar">
-            <div className="loading-fill" ref={progressFillRef} style={{ width: '0%' }} />
-          </div>
-        </div>
-      </div>
-      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: false">
+      <a-scene renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; toneMapping: ACESFilmic; exposure: 1.25" shadow="type: pcfsoft" background="color: #ECECEC" loading-screen="enabled: true">
         <a-assets timeout="0">
           <a-asset-item
             id="modelGLB"

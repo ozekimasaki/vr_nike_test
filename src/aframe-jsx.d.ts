@@ -7,6 +7,7 @@ declare namespace JSX {
     'a-box': any;
     'a-entity': any;
     'a-camera': any;
+    'a-cursor': any;
     'a-sky': any;
   }
 }

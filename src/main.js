@@ -283,20 +283,9 @@ try {
       }
     }
 
-    // デバッグ用: レイヒットの有無をログに出す
-    try {
-      const cam = document.querySelector('a-camera')
-      if (cam) {
-        cam.addEventListener('raycaster-intersection', (e) => {
-          try { console.log('[ray] intersect', e.detail && e.detail.els?.map((el) => el.id || el.className || el.tagName)) } catch (_) {}
-        })
-        cam.addEventListener('raycaster-intersection-cleared', () => {
-          try { console.log('[ray] cleared') } catch (_) {}
-        })
-      }
-    } catch (_) {}
+    // デバッグログは一旦抑制（必要時に再有効化）
 
-    // 床要素自身の click でのみ発動（ボタンは貫通しない）
+    // a-cursor がヒット先へ click をディスパッチするので床の click で処理
     floorEl.addEventListener('click', (ev) => {
       try {
         const d = ev.detail || {}
